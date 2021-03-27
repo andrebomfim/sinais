@@ -1,5 +1,8 @@
 import cv2
 import numpy as np
+import strealit as st
+
+st.title('Sinais')
 
 camera = cv2.VideoCapture("http://177.72.3.203:8001/")
 
