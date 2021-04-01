@@ -17,6 +17,29 @@ status_anterior = {'luz_1': 'desligado',
 
 counter = 0
 
+X, Y = 547, 205
+x1_1, y1_1 = X - 185, Y - 12 # Coordenadas x e y
+x1_2, y1_2 = x1_1 + 10, y1_1 + 10
+x2_1, y2_1 = X, Y # Coordenadas x e y
+x2_2, y2_2 = X + 10, Y + 10
+x3_1, y3_1 = X + 138, Y + 10 # Coordenadas x e y
+x3_2, y3_2 = x3_1 + 10, y3_1 + 10
+x4_1, y4_1 = X + 280, Y + 20 # Coordenadas x e y
+x4_2, y4_2 = x4_1 + 10, y4_1 + 10
+
+
+def match_template(frame, template_file):
+    template = cv2.imread(template_file, cv2.IMREAD_GRAYSCALE)
+    frame_pb = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    w, h = template.shape[::-1]
+    method = cv2.TM_SQDIFF
+    res = cv2.matchTemplate(frame_pb, template, method)
+    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+    top_left = min_loc
+    bottom_right = (top_left[0] + w, top_left[1] + h)
+    cv2.rectangle(frame, top_left, bottom_right, 255, 2)
+    return top_left, bottom_right
+
 
 def status_luz(luz):
     mediana_luz = luz.mean() # Valor para mediana da primeira luz
@@ -50,9 +73,14 @@ while True:
     ret, frame = cap.read()
     # Lê a captura de vídeo.
 
+    # Pesquisa o padrão na imagem.
+    if counter < 10:
+        coordenadas = match_template(frame, './templates/template.png')
+        print(coordenadas)
+        X, Y = coordenadas[0]
+        X, Y = X - 5, Y - 9
+
     # Primeira luz
-    x1_1, x1_2 = 392, 402 # Coordenadas x
-    y1_1, y1_2 = 217, 227 # Coordenadas y
     luz_1 = frame[y1_1:y1_2, x1_1:x1_2]
     # Delimita uma ROI em torno da primeira luz
     status_luz_1 = status_luz(luz_1)
@@ -64,21 +92,17 @@ while True:
         # Desenha um retângulo em torno da primeira luz
 
     # Segunda luz
-    x2_1, x2_2 = 580, 590 # Coordenadas x
-    y2_1, y2_2 = 230, 240 # Coordenadas y
     luz_2 = frame[y2_1:y2_2, x2_1:x2_2]
     # Delimita uma ROI em torno da segunda luz
     status_luz_2 = status_luz(luz_2)
     # Define status da segunda luz
-    toca_som(status_luz_2, status_anterior['luz_2'], sons['luz_2'])
+    # toca_som(status_luz_2, status_anterior['luz_2'], sons['luz_2'])
     # Toca o som da segunda luz de acordo com seu status
     status_anterior['luz_2'] = status_luz_2 # atualiza o status anterior
     cv2.rectangle(frame, (x2_1 + 10, y2_1 + 10), (x2_2 + 10, y2_2 + 10), (0, 255, 0), 1)
         # Desenha um retângulo em torno da segunda luz
 
     # Terceira luz
-    x3_1, x3_2 = 720, 730 # Coordenadas x
-    y3_1, y3_2 = 242, 252 # Coordenadas y
     luz_3 = frame[y3_1:y3_2, x3_1:x3_2]
     # Delimita uma ROI em torno da terceira luz
     status_luz_3 = status_luz(luz_3)
@@ -90,8 +114,6 @@ while True:
         # Desenha um retângulo em torno da terceira luz
 
     # Quarta luz
-    x4_1, x4_2 = 866, 876 # Coordenadas x
-    y4_1, y4_2 = 256, 266 # Coordenadas y
     luz_4 = frame[y4_1:y4_2, x4_1:x4_2]
     # Delimita uma ROI em torno da quarta luz
     status_luz_4 = status_luz(luz_4)
@@ -103,9 +125,11 @@ while True:
         # Desenha um retângulo em torno da quarta luz
 
     data_hora = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-    cv2.putText(frame, data_hora, (10, 700), cv2.FONT_HERSHEY_DUPLEX, 1, (255, 255, 255))
+    gc = data_hora + ' - SINAIS - Recife-PE - A. Bomfim'
+    fonte = cv2.FONT_HERSHEY_PLAIN
+    cv2.putText(frame, gc, (15, 700), fonte, 1, (255, 255, 255))
 
-    cv2.imshow("Farol (Recife-PE)",frame)
+    cv2.imshow("Sinais (Recife-PE)",frame)
     # Exibe frame do vídeo.
 
     counter += 1
